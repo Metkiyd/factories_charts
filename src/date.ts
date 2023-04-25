@@ -1,8 +1,11 @@
 import * as dayjs from 'dayjs'
 import * as updateLocale from 'dayjs/plugin/updateLocale'
+import * as customParseFormat from 'dayjs/plugin/customParseFormat'
 import 'dayjs/locale/ru'
 
 dayjs.extend(updateLocale)
+dayjs.extend(customParseFormat)
+
 
 dayjs.updateLocale('ru', {
   monthsShort: [
@@ -22,6 +25,9 @@ dayjs.updateLocale('ru', {
 })
 
 export const getMonth = (date: string) => {
-  const res = dayjs(date).locale('ru').format('MMM')
-  return res
+  return dayjs(date, 'D/M/YYYY').locale('ru').format('MMM')
+}
+
+export const getNumberMonth = (date: string) => {
+  return dayjs(date, 'D/M/YYYY').month()
 }

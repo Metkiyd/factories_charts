@@ -2,13 +2,11 @@ import EChartsReact from 'echarts-for-react'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from "react";
 import { IProduct, TFilter } from "../assets/types";
+import { getMonth, getNumberMonth } from "../date.ts";
 
 
 export const Chart = () => {
   const navigate = useNavigate()
-
-
-
   const [products, setProducts] = useState<IProduct[]>([])
 
   const defaultFilter = (): TFilter => {
@@ -30,7 +28,7 @@ export const Chart = () => {
 
     fetch('http://localhost:3001/products')
         .then(res => res.json())
-        .then(res => setProducts(res))
+        .then((res: IProduct[]) => setProducts(res.filter(({ date }) => date)))
   }, [])
 
   useEffect(() => {
@@ -42,14 +40,12 @@ export const Chart = () => {
     return products.filter(({ factory_id }) => factory_id === id)
   }
 
-  const getProductsByMount = (products: IProduct[], mount: number) => {
-    const regExp = new RegExp(`^(\\d{1,2})\\/${mount}\\/(\\d{4})$`);
-
-    return products.filter(({date}) => date && regExp.test(date))
+  const getProductsByMonth = (products: IProduct[], month: number) => {
+    return products.filter(({date}) => date && getNumberMonth(date) === month)
   }
 
-  const getValueProductsByKey = (products: IProduct[], key: TFilter): number => {
-    return products.reduce((acc, product) => acc + getValueProductByKey(product, key), 0)
+  const getValueProductsByFilter = (products: IProduct[], filter: TFilter): number => {
+    return products.reduce((acc, product) => acc + getValueProductByKey(product, filter), 0)
   }
 
   const getValueProductByKey = (product: IProduct, key: TFilter): number => {
@@ -63,98 +59,72 @@ export const Chart = () => {
     }
   }
 
-  const getProducts = (fabricId: number, category: TFilter) => {
-    const mounts = getMounts()
+  const getProducts = (fabricId: number, filter: TFilter) => {
+    const months = getMonths()
 
     const productsByFabric = getProductsByFabricId(fabricId)
 
-    return mounts.reduce((prev: any[], mount) => {
-      const filterProductsByDate = getProductsByMount(productsByFabric, mount)
+    return months.reduce((prev: any[], month) => {
+      const filterProductsByDate = getProductsByMonth(productsByFabric, month)
 
-      const productsValue =  getValueProductsByKey(filterProductsByDate, category)
+      const productsValue =  getValueProductsByFilter(filterProductsByDate, filter)
 
       return [
           ...prev,
-        [
-          getNameByNumberMount(mount),
-          productsValue
-        ]
+          {
+            fabricId,
+            month,
+            value: productsValue
+          }
       ]
     }, [])
   }
 
-  const getMounts = () => {
+  const getMonths = () => {
 
-    const allMounts = products.reduce((acc: number[], { date }) => {
-      const regExp = new RegExp(`^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$`);
+    const allMonths = products.reduce((acc: number[], { date }) => {
 
-      if(!date) return acc
-
-      const mountNumber = Number(regExp.exec(date)![2])
-
-      return date ? [...acc, mountNumber] : acc
+      return date ? [...acc, getNumberMonth(date)] : acc
     }, [])
 
-    return [ ...new Set(allMounts) ].sort((a, b ) => a - b)
+    return [ ...new Set(allMonths) ].sort((a, b ) => a - b)
   }
 
-  const getNamesMount = () => {
-    const mounts = getMounts()
+  const getNamesMonth = () => {
+    const allNameMonths = products.reduce((acc: string[], { date }) => {
 
-    return mounts.map(mount => getNameByNumberMount(mount))
-  }
+      return date ? [...acc, getMonth(date)] : acc
+    }, [])
 
-  const getNameByNumberMount = (mount: number): string => {
-    switch (mount) {
-      case 1:
-        return 'Янв';
-      case 2:
-        return 'Фев';
-      case 3:
-        return 'Мар';
-      case 4:
-        return 'Апр';
-      case 5:
-        return 'Май';
-      case 6:
-        return 'Июн';
-      case 7:
-        return 'Июл';
-      case 8:
-        return 'Авг';
-      case 9:
-        return 'Сен';
-      case 10:
-        return 'Окт';
-      case 11:
-        return 'Ноя';
-      default:
-        return 'Дек';
-    }
+    return [ ...new Set(allNameMonths) ]
   }
 
   const getCountProductsByFabricId = (id: number) => {
-
+    console.log(getNamesMonth())
+    console.log(getProducts(id,  filter))
     return getProducts(id,  filter)
   }
 
   const option = {
     legend: {},
     tooltip: {},
-    xAxis: { type: 'category',
-      data: getNamesMount()
+    xAxis: {
+      type: 'category',
+      data: getNamesMonth()
+    },
+    dataset: {
+      dimensions: ['month','value'],
+      source: [ ...getCountProductsByFabricId(1), ...getCountProductsByFabricId(2)]
     },
     yAxis: {},
     series: [
       {
-        data: getCountProductsByFabricId(1),
         type: 'bar',
         itemStyle: {
           color: 'rgb(0,40,255)'
         },
       },
       {
-        data: getCountProductsByFabricId(2),
         type: 'bar',
         itemStyle: {
           color: 'rgb(255,0,0)'
@@ -163,11 +133,11 @@ export const Chart = () => {
     ],
   }
 
-  const onChartClick = (params) => {
+  const onChartClick = (params: any) => {
     console.log('Chart clicked', params)
-    const fabricId = params.data.factory
-    const mount = 3
-    navigate(`details/${fabricId}/${mount}`)
+    const fabricId = params.data.fabricId
+    const month = params.data.month
+    navigate(`details/${fabricId}/${month}`)
   }
 
   const onEvents = {
@@ -176,16 +146,17 @@ export const Chart = () => {
 
   return (
     <div>
-      {/*<select onChange={(e) => {*/}
-      {/*  setFilter(e.target.value)*/}
-      {/*}}*/}
-      {/*value={filter}*/}
-      {/*>*/}
-      {/*  <option value={'all'}>Все</option>*/}
-      {/*  <option value={'product1'}>Продукт 1</option>*/}
-      {/*  <option value={'product2'}>Продукт 2</option>*/}
-      {/*</select>*/}
-      <EChartsReact option={option} />
+      <select onChange={(e) => {
+        // @ts-ignore
+        setFilter(e.target.value)
+      }}
+      value={filter}
+      >
+        <option value={'all'}>Все</option>
+        <option value={'product1'}>Продукт 1</option>
+        <option value={'product2'}>Продукт 2</option>
+      </select>
+      <EChartsReact option={option} onEvents={onEvents} />
     </div>
   )
 }
