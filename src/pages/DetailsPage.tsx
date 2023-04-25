@@ -1,49 +1,42 @@
 import EChartsReact from "echarts-for-react";
 import { useParams} from "react-router-dom";
-import {useCallback, useMemo} from "react";
-import {IProduct} from "../assets/types";
-import {getNumberMonth} from "../date.ts";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {INotValidProduct, IProduct} from "../assets/types";
+import {getNumberMonth} from "../assets/utils/date.ts";
+import {getDatasetProductsByKey, validProducts} from "../assets/utils/details.ts";
 
 export const DetailsPage = () => {
-
-
   const params = useParams()
 
+  const [allProducts, setProducts] = useState<IProduct[]>([])
 
-  const factoryId = useMemo(() => {
-    return Number(params.fabricId)
-  }, [params])
+  useEffect(() => {
+    fetch('http://localhost:3001/products')
+        .then(res => res.json())
+        .then((res: INotValidProduct[]) => {
+          const products = validProducts(res)
+          setProducts(products)
+        })
+  }, [])
 
-  const month = useMemo(() => {
-    return Number(params.fabricId)
-  }, [params])
+  const factoryId = useMemo(() => Number(params.fabricId), [params])
+  const month = useMemo(() => Number(params.month), [params])
 
-  const products = useCallback(async () => {
-    const response = await fetch('http://localhost:3001/products')
+  const dataset = useCallback(() => {
+    const filteredProducts = allProducts.filter(({ date, factory_id}) => (
+        date && factory_id === factoryId && getNumberMonth(date) === month
+    ))
 
-    const allProducts: IProduct[] = await response.json()
+    const oneProducts = getDatasetProductsByKey(filteredProducts, 'product1', 'Продукт №1')
+    const twoProducts = getDatasetProductsByKey(filteredProducts, 'product2', 'Продукт №2')
 
-    const filteredProducts = allProducts.filter(({date, factory_id}) => {
+    return [ twoProducts, oneProducts ]
+  }, [month, factoryId, allProducts])
 
-      return date && factory_id === factoryId && getNumberMonth(date) === month
-    })
-
-    const oneProducts = getProductsByKey(filteredProducts, 'product1', 'Продукт 1')
-    const twoProducts = getProductsByKey(filteredProducts, 'product2', 'Продукт 2')
-
-    return [ ...twoProducts, ...oneProducts ]
-
-  }, [month, factoryId])
-
-
-  const getProductsByKey = (products: IProduct[], key: keyof IProduct, name: string): any => {
-    return products.reduce((acc: any[], curr: any) => [...acc, { name, value: curr[key]}]
-    , [])
-  }
 
   const option  = {
     title: {
-      text: `Информация о продуктах фабрики № ${1}`,
+      text: `Информация о продуктах фабрики № ${factoryId}`,
       left: 'center'
     },
     tooltip: {
@@ -58,7 +51,7 @@ export const DetailsPage = () => {
         name: 'Access From',
         type: 'pie',
         radius: '50%',
-        data: products,
+        data: dataset(),
         emphasis: {
           itemStyle: {
             shadowBlur: 10,

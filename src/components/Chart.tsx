@@ -2,7 +2,7 @@ import EChartsReact from 'echarts-for-react'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from "react";
 import { IProduct, TFilter } from "../assets/types";
-import { getMonth, getNumberMonth } from "../date.ts";
+import { getMonth, getNumberMonth } from "../assets/utils/date.ts";
 
 
 export const Chart = () => {
