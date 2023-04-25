@@ -1,10 +1,13 @@
 import { Chart } from './components/Chart'
+import './App.css'
 
 function App() {
   return (
-    <>
-      <Chart />
-    </>
+    <div className='wrapper'>
+      <main className='content'>
+        <Chart />
+      </main>
+    </div>
   )
 }
 

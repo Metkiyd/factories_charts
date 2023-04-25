@@ -1,0 +1,23 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 80vw;
+}
+
+.filterBorder {
+    border: 1px #6E6E6E solid;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.filter {
+    display: flex;
+    gap: 10px;
+    justify-content: end;
+}
+
+.chartBorder {
+    border: 1px #6E6E6E solid;
+    border-radius: 10px;
+}

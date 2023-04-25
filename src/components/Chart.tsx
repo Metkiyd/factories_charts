@@ -1,9 +1,8 @@
 import EChartsReact from 'echarts-for-react'
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from "react";
-import { IProduct, TFilter } from "../assets/types";
-import { getMonth, getNumberMonth } from "../date.ts";
-
+import { useEffect, useState } from 'react'
+import { IProduct, TFilter } from '../assets/types'
+import { getMonth, getNumberMonth } from '../assets/date'
 
 export const Chart = () => {
   const navigate = useNavigate()
@@ -25,27 +24,31 @@ export const Chart = () => {
   const [filter, setFilter] = useState<TFilter>(defaultFilter())
 
   useEffect(() => {
-
     fetch('http://localhost:3001/products')
-        .then(res => res.json())
-        .then((res: IProduct[]) => setProducts(res.filter(({ date }) => date)))
+      .then((res) => res.json())
+      .then((res: IProduct[]) => setProducts(res.filter(({ date }) => date)))
   }, [])
 
   useEffect(() => {
     localStorage.setItem('filter', filter)
   }, [filter])
 
-
   const getProductsByFabricId = (id: number): any[] => {
     return products.filter(({ factory_id }) => factory_id === id)
   }
 
   const getProductsByMonth = (products: IProduct[], month: number) => {
-    return products.filter(({date}) => date && getNumberMonth(date) === month)
+    return products.filter(({ date }) => date && getNumberMonth(date) === month)
   }
 
-  const getValueProductsByFilter = (products: IProduct[], filter: TFilter): number => {
-    return products.reduce((acc, product) => acc + getValueProductByKey(product, filter), 0)
+  const getValueProductsByFilter = (
+    products: IProduct[],
+    filter: TFilter,
+  ): number => {
+    return products.reduce(
+      (acc, product) => acc + getValueProductByKey(product, filter),
+      0,
+    )
   }
 
   const getValueProductByKey = (product: IProduct, key: TFilter): number => {
@@ -55,7 +58,11 @@ export const Chart = () => {
       case 'product2':
         return product[key]!
       default:
-        return (product['product1'] || 0) + (product['product2'] || 0) + (product['product3'] || 0)
+        return (
+          (product['product1'] || 0) +
+          (product['product2'] || 0) +
+          (product['product3'] || 0)
+        )
     }
   }
 
@@ -67,42 +74,42 @@ export const Chart = () => {
     return months.reduce((prev: any[], month) => {
       const filterProductsByDate = getProductsByMonth(productsByFabric, month)
 
-      const productsValue =  getValueProductsByFilter(filterProductsByDate, filter)
+      const productsValue = getValueProductsByFilter(
+        filterProductsByDate,
+        filter,
+      )
 
       return [
-          ...prev,
-          {
-            fabricId,
-            month,
-            value: productsValue
-          }
+        ...prev,
+        {
+          fabricId,
+          month,
+          value: productsValue,
+        },
       ]
     }, [])
   }
 
   const getMonths = () => {
-
     const allMonths = products.reduce((acc: number[], { date }) => {
-
       return date ? [...acc, getNumberMonth(date)] : acc
     }, [])
 
-    return [ ...new Set(allMonths) ].sort((a, b ) => a - b)
+    return [...new Set(allMonths)].sort((a, b) => a - b)
   }
 
   const getNamesMonth = () => {
     const allNameMonths = products.reduce((acc: string[], { date }) => {
-
       return date ? [...acc, getMonth(date)] : acc
     }, [])
 
-    return [ ...new Set(allNameMonths) ]
+    return [...new Set(allNameMonths)]
   }
 
   const getCountProductsByFabricId = (id: number) => {
-    console.log(getNamesMonth())
-    console.log(getProducts(id,  filter))
-    return getProducts(id,  filter)
+    // console.log(getNamesMonth())
+    console.log(`fabric${id}`, getProducts(id, filter))
+    return getProducts(id, filter)
   }
 
   const option = {
@@ -110,24 +117,27 @@ export const Chart = () => {
     tooltip: {},
     xAxis: {
       type: 'category',
-      data: getNamesMonth()
+      data: getNamesMonth(),
     },
     dataset: {
-      dimensions: ['month','value'],
-      source: [ ...getCountProductsByFabricId(1), ...getCountProductsByFabricId(2)]
+      dimensions: ['month', 'value'],
+      source: [
+        ...getCountProductsByFabricId(1),
+        ...getCountProductsByFabricId(2),
+      ],
     },
     yAxis: {},
     series: [
       {
         type: 'bar',
         itemStyle: {
-          color: 'rgb(0,40,255)'
+          color: 'rgb(0,40,255)',
         },
       },
       {
         type: 'bar',
         itemStyle: {
-          color: 'rgb(255,0,0)'
+          color: 'rgb(255,0,0)',
         },
       },
     ],
@@ -145,18 +155,27 @@ export const Chart = () => {
   }
 
   return (
-    <div>
-      <select onChange={(e) => {
-        // @ts-ignore
-        setFilter(e.target.value)
-      }}
-      value={filter}
-      >
-        <option value={'all'}>Все</option>
-        <option value={'product1'}>Продукт 1</option>
-        <option value={'product2'}>Продукт 2</option>
-      </select>
-      <EChartsReact option={option} onEvents={onEvents} />
-    </div>
+    <>
+      <div className='filterBorder'>
+        <div className='filter'>
+          <span>Фильтр по типу продукции</span>
+          <select
+            onChange={(e) => {
+              // @ts-ignore
+              setFilter(e.target.value)
+            }}
+            value={filter}
+          >
+            <option value={'all'}>Все</option>
+            <option value={'product1'}>Продукт 1</option>
+            <option value={'product2'}>Продукт 2</option>
+          </select>
+        </div>
+      </div>
+
+      <div className='chartBorder'>
+        <EChartsReact option={option} onEvents={onEvents} />
+      </div>
+    </>
   )
 }

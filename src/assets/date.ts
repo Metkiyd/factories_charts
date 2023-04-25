@@ -6,7 +6,6 @@ import 'dayjs/locale/ru'
 dayjs.extend(updateLocale)
 dayjs.extend(customParseFormat)
 
-
 dayjs.updateLocale('ru', {
   monthsShort: [
     'Янв',
