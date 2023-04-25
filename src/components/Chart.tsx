@@ -1,8 +1,13 @@
 import EChartsReact from 'echarts-for-react'
+import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from "react";
 import { IProduct, TFilter } from "../assets/types";
 
+
 export const Chart = () => {
+  const navigate = useNavigate()
+
+
 
   const [products, setProducts] = useState<IProduct[]>([])
 
@@ -157,6 +162,18 @@ export const Chart = () => {
       },
     ],
   }
+
+  const onChartClick = (params) => {
+    console.log('Chart clicked', params)
+    const fabricId = params.data.factory
+    const mount = 3
+    navigate(`details/${fabricId}/${mount}`)
+  }
+
+  const onEvents = {
+    click: onChartClick,
+  }
+
   return (
     <div>
       {/*<select onChange={(e) => {*/}
