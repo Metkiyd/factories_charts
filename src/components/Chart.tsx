@@ -1,30 +1,40 @@
 import EChartsReact from 'echarts-for-react'
 import { products } from '../data'
+import { useNavigate } from 'react-router-dom'
 
 export const Chart = () => {
+  const navigate = useNavigate()
+
+  const array = products.map((product) => ({
+    factory: product.factory_id,
+    // month: product.date,
+    value: product.product1,
+  }))
   const option = {
     legend: {},
     tooltip: {},
     dataset: {
-      source: products,
-      //   [
-      //   ['product', '2015', '2016', '2017'],
-      //   ['Cheese Cocoa', 86.4, 65.2, 82.5],
-      //   ['Walnut Brownie', 72.4, 53.9, 39.1],
-      // ],
+      source: array,
     },
     xAxis: { type: 'category' },
     yAxis: {},
-    series: [
-      { type: 'bar' },
-      { type: 'bar' },
-      { type: 'bar' },
-      { type: 'bar' },
-    ],
+    series: [{ type: 'bar' }],
   }
+
+  const onChartClick = (params) => {
+    console.log('Chart clicked', params)
+    const fabricId = params.data.factory
+    const mount = 3
+    navigate(`details/${fabricId}/${mount}`)
+  }
+
+  const onEvents = {
+    click: onChartClick,
+  }
+
   return (
-    <div>
-      <EChartsReact option={option} />
-    </div>
+    <>
+      <EChartsReact option={option} onEvents={onEvents} />
+    </>
   )
 }
