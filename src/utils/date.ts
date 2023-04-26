@@ -3,7 +3,7 @@ import * as updateLocale from 'dayjs/plugin/updateLocale'
 import * as customParseFormat from 'dayjs/plugin/customParseFormat'
 import 'dayjs/locale/ru'
 
-import { IProduct } from "../types";
+import { IProduct } from '../types'
 
 dayjs.extend(updateLocale)
 dayjs.extend(customParseFormat)
@@ -25,22 +25,19 @@ dayjs.updateLocale('ru', {
   ],
 })
 
-export const getMonth = (date: string) => {
-  return dayjs(date, 'D/M/YYYY').locale('ru').format('MMM')
-}
-
 export const getNumberMonth = (date: string) => {
   return dayjs(date, 'D/M/YYYY').month()
 }
 
+export const getNameByNumberMount = (
+  monthNumber: number,
+  isFull = false,
+): string => {
+  dayjs.locale('ru')
+  const month = dayjs().month(monthNumber).startOf('month')
+  const format = isFull ? 'MMMM' : 'MMM'
 
-export const getNameByNumberMount = (monthNumber: number, isFull = false): string => {
-
-  dayjs.locale('ru');
-  const month = dayjs().month(monthNumber).startOf('month');
-  const format = isFull ? 'MMMM' : 'MMM';
-
-  return month.format(format);
+  return month.format(format)
 }
 
 export const getNumberMonths = (products: IProduct[]): number[] => {

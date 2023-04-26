@@ -1,8 +1,10 @@
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
-import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+
 import { DetailsPage } from './pages/DetailsPage'
+
+import './index.css'
 
 const router = createBrowserRouter([
   {

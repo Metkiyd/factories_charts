@@ -1,11 +1,12 @@
-import { Chart } from './components/Chart'
-import './App.css'
+import { HomePage } from './pages/HomePage'
+
+import './style.css'
 
 function App() {
   return (
     <div className='wrapper'>
       <main className='content'>
-        <Chart />
+        <HomePage />
       </main>
     </div>
   )
