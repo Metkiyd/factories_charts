@@ -9,6 +9,12 @@ export interface IProduct {
     product3: number
 }
 
+export interface IChartData {
+    factoryId: number;
+    month: number;
+    value: number;
+}
+
 export interface INotValidProduct {
     id: number;
     factory_id: number;

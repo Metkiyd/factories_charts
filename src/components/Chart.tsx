@@ -1,27 +1,17 @@
-import EChartsReact from 'echarts-for-react'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { IProduct, TFilter } from '../assets/types'
-import { getNameByNumberMount, getNumberMonth } from '../assets/utils/date'
+
+import EChartsReact from 'echarts-for-react'
+
+import { getNamesMonth, getNumberMonths, defaultFilter, getProductsByNumberMonth, getValueProductsByFilter} from '../assets/utils'
+
+import { IChartData, IProduct, TFilter } from '../assets/types'
+
 
 export const Chart = () => {
   const navigate = useNavigate()
 
   const [products, setProducts] = useState<IProduct[]>([])
-
-  const defaultFilter = (): TFilter => {
-    const candidate = localStorage.getItem('filter')
-
-    switch (candidate) {
-      case 'product1':
-        return candidate
-      case 'product2':
-        return candidate
-      default:
-        return 'all'
-    }
-  }
-
   const [filter, setFilter] = useState<TFilter>(defaultFilter())
 
   useEffect(() => {
@@ -38,42 +28,13 @@ export const Chart = () => {
     return products.filter(({ factory_id }) => factory_id === id)
   }
 
-  const getProductsByMonth = (products: IProduct[], month: number) => {
-    return products.filter(({ date }) => date && getNumberMonth(date) === month)
-  }
+  const getProducts = (factoryId: number, filter: TFilter): IChartData[] => {
+    const months = getNumberMonths(products)
 
-  const getValueProductsByFilter = (
-    products: IProduct[],
-    filter: TFilter,
-  ): number => {
-    return products.reduce(
-      (acc, product) => acc + getValueProductByKey(product, filter),
-      0,
-    )
-  }
-
-  const getValueProductByKey = (product: IProduct, key: TFilter): number => {
-    switch (key) {
-      case 'product1':
-        return product[key]!
-      case 'product2':
-        return product[key]!
-      default:
-        return (
-          (product['product1'] || 0) +
-          (product['product2'] || 0) +
-          (product['product3'] || 0)
-        )
-    }
-  }
-
-  const getProducts = (fabricId: number, filter: TFilter) => {
-    const months = getMonths()
-
-    const productsByFabric = getProductsByFabricId(fabricId)
+    const productsByFabric = getProductsByFabricId(factoryId)
 
     return months.reduce((prev: any[], month) => {
-      const filterProductsByDate = getProductsByMonth(productsByFabric, month)
+      const filterProductsByDate = getProductsByNumberMonth(productsByFabric, month)
 
       const productsValue = getValueProductsByFilter(
         filterProductsByDate,
@@ -83,7 +44,7 @@ export const Chart = () => {
       return [
         ...prev,
         {
-          fabricId,
+          factoryId,
           month,
           value: productsValue,
         },
@@ -91,19 +52,6 @@ export const Chart = () => {
     }, [])
   }
 
-  const getMonths = () => {
-    const allMonths = products.reduce((acc: number[], { date }) => {
-      return date ? [...acc, getNumberMonth(date)] : acc
-    }, [])
-
-    return [...new Set(allMonths)].sort((a, b) => a - b)
-  }
-
-  const getNamesMonth = () => {
-    const months = getMonths()
-
-    return months.map((numberMonth) => getNameByNumberMount(numberMonth))
-  }
 
   const getCountProductsByFabricId = (id: number) => {
     return getProducts(id, filter)
@@ -122,7 +70,7 @@ export const Chart = () => {
     },
     xAxis: {
       type: 'category',
-      data: getNamesMonth(),
+      data: getNamesMonth(products),
     },
     yAxis: {},
     series: [
@@ -146,9 +94,9 @@ export const Chart = () => {
   }
 
   const onChartClick = (params: any) => {
-    console.log('Chart clicked', params)
-    const fabricId = params.data.fabricId
+    const fabricId = params.data.factoryId
     const month = params.data.month
+
     navigate(`details/${fabricId}/${month}`)
   }
 

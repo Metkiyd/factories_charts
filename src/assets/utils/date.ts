@@ -3,6 +3,8 @@ import * as updateLocale from 'dayjs/plugin/updateLocale'
 import * as customParseFormat from 'dayjs/plugin/customParseFormat'
 import 'dayjs/locale/ru'
 
+import { IProduct } from "../types";
+
 dayjs.extend(updateLocale)
 dayjs.extend(customParseFormat)
 
@@ -31,31 +33,26 @@ export const getNumberMonth = (date: string) => {
   return dayjs(date, 'D/M/YYYY').month()
 }
 
-export const getNameByNumberMount = (mount: number): string => {
-  switch (mount) {
-    case 0:
-      return 'Янв'
-    case 1:
-      return 'Фев'
-    case 2:
-      return 'Мар'
-    case 3:
-      return 'Апр'
-    case 4:
-      return 'Май'
-    case 5:
-      return 'Июн'
-    case 6:
-      return 'Июл'
-    case 7:
-      return 'Авг'
-    case 8:
-      return 'Сен'
-    case 9:
-      return 'Окт'
-    case 10:
-      return 'Ноя'
-    default:
-      return 'Дек'
-  }
+
+export const getNameByNumberMount = (monthNumber: number, isFull = false): string => {
+
+  dayjs.locale('ru');
+  const month = dayjs().month(monthNumber).startOf('month');
+  const format = isFull ? 'MMMM' : 'MMM';
+
+  return month.format(format);
+}
+
+export const getNumberMonths = (products: IProduct[]): number[] => {
+  const allMonths = products.reduce((acc: number[], { date }) => {
+    return date ? [...acc, getNumberMonth(date)] : acc
+  }, [])
+
+  return [...new Set(allMonths)].sort((a, b) => a - b)
+}
+
+export const getNamesMonth = (products: IProduct[]): string[] => {
+  const months = getNumberMonths(products)
+
+  return months.map((numberMonth) => getNameByNumberMount(numberMonth))
 }

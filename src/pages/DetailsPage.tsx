@@ -1,12 +1,12 @@
-import EChartsReact from 'echarts-for-react'
-import { useParams } from 'react-router-dom'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+
+import EChartsReact from 'echarts-for-react'
+import { EChartsOption } from "echarts";
+
+import { getNameByNumberMount, getNumberMonth, getPieOption, getDatasetProductsByKey, validProducts } from '../assets/utils'
+
 import { INotValidProduct, IProduct } from '../assets/types'
-import { getNumberMonth } from '../assets/utils/date.ts'
-import {
-  getDatasetProductsByKey,
-  validProducts,
-} from '../assets/utils/details.ts'
 
 export const DetailsPage = () => {
   const params = useParams()
@@ -22,13 +22,14 @@ export const DetailsPage = () => {
       })
   }, [])
 
-  const factoryId = useMemo(() => Number(params.fabricId), [params])
-  const month = useMemo(() => Number(params.month), [params])
+  const factoryId = useMemo(() => Number(params.factoryId), [params])
+  const numberMonth = useMemo(() => Number(params.month), [params])
+  const monthName = useMemo(() => getNameByNumberMount(numberMonth, true), [numberMonth])
 
-  const dataset = useCallback(() => {
+  const dataset = useCallback((): EChartsOption[] => {
     const filteredProducts = allProducts.filter(
       ({ date, factory_id }) =>
-        date && factory_id === factoryId && getNumberMonth(date) === month,
+        date && factory_id === factoryId && getNumberMonth(date) === numberMonth,
     )
 
     const oneProducts = getDatasetProductsByKey(
@@ -43,36 +44,9 @@ export const DetailsPage = () => {
     )
 
     return [twoProducts, oneProducts]
-  }, [month, factoryId, allProducts])
+  }, [numberMonth, factoryId, allProducts])
 
-  const option = {
-    title: {
-      text: `Статистика по продукции Фабрики ${factoryId} за ${month}`,
-      left: 'center',
-    },
-    tooltip: {
-      trigger: 'item',
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-    },
-    series: [
-      {
-        name: 'Access From',
-        type: 'pie',
-        radius: '60%',
-        data: dataset(),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
-          },
-        },
-      },
-    ],
-  }
+  const option = useMemo(() => getPieOption(factoryId, monthName, dataset()), [monthName, factoryId, allProducts])
 
   return <EChartsReact option={option} />
 }
