@@ -2,10 +2,11 @@ import EChartsReact from 'echarts-for-react'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { IProduct, TFilter } from '../assets/types'
-import { getMonth, getNumberMonth } from '../assets/utils/date'
+import { getNameByNumberMount, getNumberMonth } from '../assets/utils/date'
 
 export const Chart = () => {
   const navigate = useNavigate()
+
   const [products, setProducts] = useState<IProduct[]>([])
 
   const defaultFilter = (): TFilter => {
@@ -99,45 +100,46 @@ export const Chart = () => {
   }
 
   const getNamesMonth = () => {
-    const allNameMonths = products.reduce((acc: string[], { date }) => {
-      return date ? [...acc, getMonth(date)] : acc
-    }, [])
+    const months = getMonths()
 
-    return [...new Set(allNameMonths)]
+    return months.map((numberMonth) => getNameByNumberMount(numberMonth))
   }
 
   const getCountProductsByFabricId = (id: number) => {
-    // console.log(getNamesMonth())
-    console.log(`fabric${id}`, getProducts(id, filter))
     return getProducts(id, filter)
   }
 
   const option = {
-    legend: {},
-    tooltip: {},
+    legend: {
+      bottom: '5%',
+      data: ['Фабрика А', 'Фабрика Б'],
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+      },
+    },
     xAxis: {
       type: 'category',
       data: getNamesMonth(),
-    },
-    dataset: {
-      dimensions: ['month', 'value'],
-      source: [
-        ...getCountProductsByFabricId(1),
-        ...getCountProductsByFabricId(2),
-      ],
     },
     yAxis: {},
     series: [
       {
         type: 'bar',
+        name: 'Фабрика А',
+        data: getCountProductsByFabricId(1),
         itemStyle: {
-          color: 'rgb(0,40,255)',
+          color: 'rgb(255,0,0)',
         },
       },
       {
         type: 'bar',
+        name: 'Фабрика Б',
+        data: getCountProductsByFabricId(2),
         itemStyle: {
-          color: 'rgb(255,0,0)',
+          color: 'rgb(0,40,255)',
         },
       },
     ],
